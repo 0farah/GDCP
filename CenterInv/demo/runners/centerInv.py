@@ -409,8 +409,6 @@ async def main(args):
             "gender",
             "disease",
             "date",
-            "birthdate_dateint",
-            "timestamp",
         ]
         if centerInv_agent.cred_type == CRED_FORMAT_INDY:
             centerInv_agent.public_did = True
