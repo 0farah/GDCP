@@ -169,7 +169,6 @@ class CenterInvAgent(AriesAgent):
     def generate_proof_request_web_request(
         self, aip, cred_type, revocation, exchange_tracing, connectionless=False
     ):
-        age = 18
         if aip == 10:
             if revocation:
                 req_attrs=[
@@ -186,20 +185,7 @@ class CenterInvAgent(AriesAgent):
                         "restrictions": [{"schema_name": "patient schema"}],
                     }
                 ]
-                req_attrs.append(
-                {
-                    "name": "gender",
-                    "restrictions": [{"schema_name": "patient schema"}],
-                })
-                req_attrs.append({
-                    "name": "disease",
-                    "restrictions": [{"schema_name": "patient schema"}],
-                })
-                req_attrs.append({
-                    "name": "date",
-                    "restrictions": [{"schema_name": "patient schema"}],
-                }
-            )
+                
             
             if SELF_ATTESTED:
                 # test self-attested claims
@@ -209,9 +195,9 @@ class CenterInvAgent(AriesAgent):
             req_preds = [
                 # test zero-knowledge proofs
                 {
-                    "name": "date",
-                    "p_type": "<=",
-                    "p_value": int("2023"),
+                    "name": "ref",
+                    "p_type": ">",
+                    "p_value": int("0"),
                     "restrictions": [{"schema_name": "patient schema"}],
                 }
             ]
@@ -255,19 +241,7 @@ class CenterInvAgent(AriesAgent):
                         "restrictions": [{"schema_name": "patient schema"}],
                     }
                     ]
-                    req_attrs.append(
-                    {
-                    "name": "gender",
-                    "restrictions": [{"schema_name": "patient schema"}],
-                    })
-                    req_attrs.append({
-                    "name": "disease",
-                    "restrictions": [{"schema_name": "patient schema"}],
-                    })
-                    req_attrs.append({
-                    "name": "date",
-                    "restrictions": [{"schema_name": "patient schema"}],
-                    })
+                    
                 if SELF_ATTESTED:
                     # test self-attested claims
                     req_attrs.append(
@@ -276,9 +250,9 @@ class CenterInvAgent(AriesAgent):
                 req_preds = [
                     # test zero-knowledge proofs
                     {
-                        "name": "date",
-                        "p_type": "<=",
-                        "p_value": int("2023"),
+                        "name": "ref",
+                        "p_type": ">",
+                        "p_value": int("0"),
                         "restrictions": [{"schema_name": "patient schema"}],
                     }
                 ]
