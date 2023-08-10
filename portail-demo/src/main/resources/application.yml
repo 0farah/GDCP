@@ -1,0 +1,10 @@
+app:
+  security:
+    ssl:
+      enabled: false
+config:
+  connectionUrl: http://localhost:8021/connections
+server:
+  port: 8086
+
+
