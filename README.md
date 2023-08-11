@@ -31,7 +31,7 @@ The primary goal of the project is to develop a secure and user-centric workflow
 By seamlessly integrating SSI principles into clinical studies, this project will enhance patient data security, foster trust between patients and healthcare stakeholders, and accelerate medical research through more ethical and privacy-conscious data sharing. The project's outcome aligns with the broader objective of advancing healthcare while respecting individual data sovereignty.
 
 ## Application Setup 
-[click](https://github.com/0farah/GDCP.git/application#readme)
+[click](https://github.com/0farah/GDCP/blob/main/application/README.md)
 
 ## Runing `centerInv` Agent
 
