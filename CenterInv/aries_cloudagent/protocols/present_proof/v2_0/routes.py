@@ -1,6 +1,7 @@
 """Admin routes for presentations."""
 
 import json
+from typing import Mapping, Sequence, Tuple
 
 from aiohttp import web
 from aiohttp_apispec import (
@@ -11,8 +12,27 @@ from aiohttp_apispec import (
     response_schema,
 )
 from marshmallow import fields, validate, validates_schema, ValidationError
-from typing import Mapping, Sequence, Tuple
 
+from . import problem_report_for_record, report_problem
+from .formats.handler import V20PresFormatHandlerError
+from .manager import V20PresManager
+from .message_types import (
+    ATTACHMENT_FORMAT,
+    PRES_20_PROPOSAL,
+    PRES_20_REQUEST,
+    SPEC_URI,
+)
+from .messages.pres_format import V20PresFormat
+from .messages.pres_problem_report import ProblemReportReason
+from .messages.pres_proposal import V20PresProposal
+from .messages.pres_request import V20PresRequest
+from .models.pres_exchange import V20PresExRecord, V20PresExRecordSchema
+from ..dif.pres_exch import InputDescriptors, ClaimFormat, SchemaInputDescriptor
+from ..dif.pres_proposal_schema import DIFProofProposalSchema
+from ..dif.pres_request_schema import (
+    DIFProofRequestSchema,
+    DIFPresSpecSchema,
+)
 from ....admin.request_context import AdminRequestContext
 from ....connections.models.conn_record import ConnRecord
 from ....indy.holder import IndyHolder, IndyHolderError
@@ -31,35 +51,17 @@ from ....messaging.valid import (
     UUIDFour,
     UUID4,
 )
-from ....storage.error import StorageError, StorageNotFoundError
 from ....storage.base import BaseStorage
+from ....storage.error import StorageError, StorageNotFoundError
 from ....storage.vc_holder.base import VCHolder
 from ....storage.vc_holder.vc_record import VCRecord
 from ....utils.tracing import trace_event, get_timer, AdminAPIMessageTracingSchema
-from ....vc.ld_proofs import BbsBlsSignature2020, Ed25519Signature2018
+from ....vc.ld_proofs import (
+    BbsBlsSignature2020,
+    Ed25519Signature2018,
+    Ed25519Signature2020,
+)
 from ....wallet.error import WalletNotFoundError
-
-from ..dif.pres_exch import InputDescriptors, ClaimFormat, SchemaInputDescriptor
-from ..dif.pres_proposal_schema import DIFProofProposalSchema
-from ..dif.pres_request_schema import (
-    DIFProofRequestSchema,
-    DIFPresSpecSchema,
-)
-
-from . import problem_report_for_record, report_problem
-from .formats.handler import V20PresFormatHandlerError
-from .manager import V20PresManager
-from .message_types import (
-    ATTACHMENT_FORMAT,
-    PRES_20_PROPOSAL,
-    PRES_20_REQUEST,
-    SPEC_URI,
-)
-from .messages.pres_format import V20PresFormat
-from .messages.pres_problem_report import ProblemReportReason
-from .messages.pres_proposal import V20PresProposal
-from .messages.pres_request import V20PresRequest
-from .models.pres_exchange import V20PresExRecord, V20PresExRecordSchema
 
 
 class V20PresentProofModuleResponseSchema(OpenAPISchema):
@@ -165,6 +167,14 @@ class V20PresProposalRequestSchema(AdminAPIMessageTracingSchema):
         required=False,
         default=False,
     )
+    auto_remove = fields.Bool(
+        description=(
+            "Whether to remove the presentation exchange record on completion "
+            "(overrides --preserve-exchange-records configuration setting)"
+        ),
+        required=False,
+        default=False,
+    )
     trace = fields.Bool(
         description="Whether to trace event (default false)",
         required=False,
@@ -214,6 +224,14 @@ class V20PresCreateRequestRequestSchema(AdminAPIMessageTracingSchema):
         required=False,
         example=False,
     )
+    auto_remove = fields.Bool(
+        description=(
+            "Whether to remove the presentation exchange record on completion "
+            "(overrides --preserve-exchange-records configuration setting)"
+        ),
+        required=False,
+        default=False,
+    )
     trace = fields.Bool(
         description="Whether to trace event (default false)",
         required=False,
@@ -237,6 +255,14 @@ class V20PresentationSendRequestToProposalSchema(AdminAPIMessageTracingSchema):
         required=False,
         example=False,
     )
+    auto_remove = fields.Bool(
+        description=(
+            "Whether to remove the presentation exchange record on completion "
+            "(overrides --preserve-exchange-records configuration setting)"
+        ),
+        required=False,
+        default=False,
+    )
     trace = fields.Bool(
         description="Whether to trace event (default false)",
         required=False,
@@ -259,6 +285,14 @@ class V20PresSpecByFormatRequestSchema(AdminAPIMessageTracingSchema):
             "Optional Presentation specification for DIF, "
             "overrides the PresentionExchange record's PresRequest"
         ),
+    )
+    auto_remove = fields.Bool(
+        description=(
+            "Whether to remove the presentation exchange record on completion "
+            "(overrides --preserve-exchange-records configuration setting)"
+        ),
+        required=False,
+        default=False,
     )
 
     @validates_schema
@@ -581,11 +615,16 @@ async def present_proof_credentials_list(request: web.BaseRequest):
                                     Ed25519Signature2018.signature_type
                                     not in proof_types
                                 )
+                                and (
+                                    Ed25519Signature2020.signature_type
+                                    not in proof_types
+                                )
                             ):
                                 raise web.HTTPBadRequest(
                                     reason=(
                                         "Only BbsBlsSignature2020 and/or "
-                                        "Ed25519Signature2018 signature types "
+                                        "Ed25519Signature2018 and/or "
+                                        "Ed25519Signature2020 signature types "
                                         "are supported"
                                     )
                                 )
@@ -599,11 +638,15 @@ async def present_proof_credentials_list(request: web.BaseRequest):
                                     Ed25519Signature2018.signature_type
                                     not in proof_types
                                 )
+                                and (
+                                    Ed25519Signature2020.signature_type
+                                    not in proof_types
+                                )
                             ):
                                 raise web.HTTPBadRequest(
                                     reason=(
-                                        "Only BbsBlsSignature2020 and "
-                                        "Ed25519Signature2018 signature types "
+                                        "Only BbsBlsSignature2020, Ed25519Signature2018 "
+                                        "and Ed25519Signature2020 signature types "
                                         "are supported"
                                     )
                                 )
@@ -619,6 +662,14 @@ async def present_proof_credentials_list(request: web.BaseRequest):
                                         break
                                     elif (
                                         proof_format
+                                        == Ed25519Signature2020.signature_type
+                                    ):
+                                        proof_type = [
+                                            Ed25519Signature2020.signature_type
+                                        ]
+                                        break
+                                    elif (
+                                        proof_format
                                         == BbsBlsSignature2020.signature_type
                                     ):
                                         proof_type = [
@@ -629,8 +680,8 @@ async def present_proof_credentials_list(request: web.BaseRequest):
                         raise web.HTTPBadRequest(
                             reason=(
                                 "Currently, only ldp_vp with "
-                                "BbsBlsSignature2020 and Ed25519Signature2018"
-                                " signature types are supported"
+                                "BbsBlsSignature2020, Ed25519Signature2018 and "
+                                "Ed25519Signature2020 signature types are supported"
                             )
                         )
                 if one_of_uri_groups:
@@ -758,6 +809,7 @@ async def present_proof_send_proposal(request: web.BaseRequest):
     auto_present = body.get(
         "auto_present", context.settings.get("debug.auto_respond_presentation_request")
     )
+    auto_remove = body.get("auto_remove")
 
     pres_manager = V20PresManager(profile)
     pres_ex_record = None
@@ -766,6 +818,7 @@ async def present_proof_send_proposal(request: web.BaseRequest):
             connection_id=connection_id,
             pres_proposal_message=pres_proposal_message,
             auto_present=auto_present,
+            auto_remove=auto_remove,
         )
         result = pres_ex_record.serialize()
     except (BaseModelError, StorageError) as err:
@@ -828,6 +881,7 @@ async def present_proof_create_request(request: web.BaseRequest):
     auto_verify = body.get(
         "auto_verify", context.settings.get("debug.auto_verify_presentation")
     )
+    auto_remove = body.get("auto_remove")
     trace_msg = body.get("trace")
     pres_request_message.assign_trace_decorator(
         context.settings,
@@ -841,6 +895,7 @@ async def present_proof_create_request(request: web.BaseRequest):
             connection_id=None,
             pres_request_message=pres_request_message,
             auto_verify=auto_verify,
+            auto_remove=auto_remove,
         )
         result = pres_ex_record.serialize()
     except (BaseModelError, StorageError) as err:
@@ -909,6 +964,7 @@ async def present_proof_send_free_request(request: web.BaseRequest):
     auto_verify = body.get(
         "auto_verify", context.settings.get("debug.auto_verify_presentation")
     )
+    auto_remove = body.get("auto_remove")
     trace_msg = body.get("trace")
     pres_request_message.assign_trace_decorator(
         context.settings,
@@ -922,6 +978,7 @@ async def present_proof_send_free_request(request: web.BaseRequest):
             connection_id=connection_id,
             pres_request_message=pres_request_message,
             auto_verify=auto_verify,
+            auto_remove=auto_remove,
         )
         result = pres_ex_record.serialize()
     except (BaseModelError, StorageError) as err:
@@ -999,6 +1056,7 @@ async def present_proof_send_bound_request(request: web.BaseRequest):
     pres_ex_record.auto_verify = body.get(
         "auto_verify", context.settings.get("debug.auto_verify_presentation")
     )
+    pres_ex_record.auto_remove = body.get("auto_remove")
     pres_manager = V20PresManager(profile)
     try:
         (
@@ -1084,6 +1142,12 @@ async def present_proof_send_presentation(request: web.BaseRequest):
                 f"(must be {V20PresExRecord.STATE_REQUEST_RECEIVED})"
             )
         )
+
+    auto_remove = body.get("auto_remove")
+    if auto_remove is None:
+        auto_remove = not profile.settings.get("preserve_exchange_records")
+
+    pres_ex_record.auto_remove = auto_remove
 
     # Fetch connection if exchange has record
     conn_record = None

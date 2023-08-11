@@ -149,9 +149,8 @@ class CenterInvAgent(AriesAgent):
                                     "type": ["PermanentResident"],
                                     "ref": "123123123",                                   
                                     "disease": "Mental health disorders",
-                                    "gender": "Female",       
-                                    "birthCountry": "Bahamas",
-                                    "birthDate": "1958-07-17",
+                                    "gender": "Female",
+                                    "date":"2018-05-28"      
                                 },
                             },
                             "options": {"proofType": SIG_TYPE_BLS},
@@ -169,6 +168,7 @@ class CenterInvAgent(AriesAgent):
     def generate_proof_request_web_request(
         self, aip, cred_type, revocation, exchange_tracing, connectionless=False
     ):
+        age = 18
         if aip == 10:
             if revocation:
                 req_attrs=[
@@ -185,7 +185,20 @@ class CenterInvAgent(AriesAgent):
                         "restrictions": [{"schema_name": "patient schema"}],
                     }
                 ]
-                
+                req_attrs.append(
+                {
+                    "name": "gender",
+                    "restrictions": [{"schema_name": "patient schema"}],
+                })
+                req_attrs.append({
+                    "name": "disease",
+                    "restrictions": [{"schema_name": "patient schema"}],
+                })
+                req_attrs.append({
+                    "name": "date",
+                    "restrictions": [{"schema_name": "patient schema"}],
+                }
+            )
             
             if SELF_ATTESTED:
                 # test self-attested claims
@@ -222,8 +235,9 @@ class CenterInvAgent(AriesAgent):
             }
             if not connectionless:
                 proof_request_web_request["connection_id"] = self.connection_id
+            print()
             return proof_request_web_request
-
+ 
         elif aip == 20:
             if cred_type == CRED_FORMAT_INDY:
                 if revocation:
@@ -241,7 +255,19 @@ class CenterInvAgent(AriesAgent):
                         "restrictions": [{"schema_name": "patient schema"}],
                     }
                     ]
-                    
+                    req_attrs.append(
+                    {
+                    "name": "gender",
+                    "restrictions": [{"schema_name": "patient schema"}],
+                    })
+                    req_attrs.append({
+                    "name": "disease",
+                    "restrictions": [{"schema_name": "patient schema"}],
+                    })
+                    req_attrs.append({
+                    "name": "date",
+                    "restrictions": [{"schema_name": "patient schema"}],
+                    })
                 if SELF_ATTESTED:
                     # test self-attested claims
                     req_attrs.append(
@@ -252,7 +278,7 @@ class CenterInvAgent(AriesAgent):
                     {
                         "name": "ref",
                         "p_type": ">",
-                        "p_value": int("0"),
+                        "p_value": int("1"),
                         "restrictions": [{"schema_name": "patient schema"}],
                     }
                 ]
@@ -277,6 +303,7 @@ class CenterInvAgent(AriesAgent):
                 }
                 if not connectionless:
                     proof_request_web_request["connection_id"] = self.connection_id
+                print(proof_request_web_request)
                 return proof_request_web_request
 
             elif cred_type == CRED_FORMAT_JSON_LD:

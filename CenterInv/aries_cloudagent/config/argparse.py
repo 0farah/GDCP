@@ -765,6 +765,17 @@ class RevocationGroup(ArgumentGroup):
                 "revocation received."
             ),
         )
+        parser.add_argument(
+            "--anoncreds-legacy-revocation",
+            type=str,
+            default="accept",
+            choices=("accept", "reject"),
+            env_var="ACAPY_ANONCREDS_LEGACY_REVOCATION",
+            help=(
+                "Specify the handling of older proofs of non-revocation "
+                "for anoncreds credentials. Values are 'accept' or 'reject'."
+            ),
+        )
 
     def get_settings(self, args: Namespace) -> dict:
         """Extract revocation settings."""
@@ -780,6 +791,10 @@ class RevocationGroup(ArgumentGroup):
             settings[
                 "revocation.monitor_notification"
             ] = args.monitor_revocation_notification
+        if args.anoncreds_legacy_revocation:
+            settings[
+                "revocation.anoncreds_legacy_support"
+            ] = args.anoncreds_legacy_revocation
         return settings
 
 
@@ -1185,7 +1200,8 @@ class ProtocolGroup(ArgumentGroup):
             "--preserve-exchange-records",
             action="store_true",
             env_var="ACAPY_PRESERVE_EXCHANGE_RECORDS",
-            help="Keep credential exchange records after exchange has completed.",
+            help="Keep credential and presentation exchange records after "
+            "exchange has completed.",
         )
         parser.add_argument(
             "--emit-new-didcomm-prefix",
