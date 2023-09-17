@@ -41,4 +41,4 @@ To do so, please click [here](https://github.com/0farah/GDCP.git/blob/main/agent
 ## Runing Portals
 
 For each entity, we meticulously designed and developed a user-friendly portal that ensures ease of use and accessibility. These purpose-built portals serve as the interface through which our project operates. Moreover, each portal seamlessly integrates with the APIs of its corresponding agent, allowing for efficient communication and interaction within the system.
-To access and utilize the portals developed for each entity, please follow this [link](https://github.com/0farah/GDCP.git/blob/main/Portals/README.md).
+To access and utilize the portals developed for each entity, please follow this [link](https://github.com/0farah/GDCP/blob/main/portals/README.md).

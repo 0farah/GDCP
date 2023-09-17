@@ -1,6 +1,6 @@
 # Run The Demo! <!-- omit in toc -->
 
-In this demo, we'll  use our familiar CenterInv ACA-Py agent to issue authentication credentials to patients, granting them access to the portal. This time the patient will use the [application](https://gitlab.tech.orange/salma.bradai/pfe-gestion-de-consentement-patient/-/blob/main/application/README.md) (mobile wallet) to accept the cresential and to provide their consent in medical researchs and then the Medical Center can check the consent with the Investigator Center to provide data access. To do this we need to run the centerInv agent on a publicly accessible port, and Alice will need a compatible mobile wallet.
+In this demo, we'll  use our familiar CenterInv ACA-Py agent to issue authentication credentials to patients, granting them access to the portal. This time the patient will use the [application](https://github.com/0farah/GDCP.git/blob/main/application/README.md) (mobile wallet) to accept the cresential and to provide their consent in medical researchs and then the Medical Center can check the consent with the Investigator Center to provide data access. To do this we need to run the centerInv agent on a publicly accessible port, and Alice will need a compatible mobile wallet.
 
 # Contents <!-- omit in toc -->
 
@@ -35,7 +35,7 @@ Of course for this, you need to have a mobile agent. To find, install and setup 
 Open a new bash shell and in a project directory run the following:
 
 ```bash
-git clone https://gitlab.tech.orange/salma.bradai/pfe-gestion-de-consentement-patient.git Agents 
+git clone https://github.com/0farah/GDCP.git agents 
 ```
 
 ### Run `patient` 
@@ -137,7 +137,7 @@ When the Investigator Center agent starts up it automatically creates an invitat
 
 ## Issue a Credential
 
-We will use the Investigator Center console to issue a credential. This could be done using the Swagger API as we have done in this [link](https://github.com/0farah/GDCP.git/-/blob/main/API.md).
+We will use the Investigator Center console to issue a credential. This could be done using the Swagger API as we have done in this [link](https://github.com/0farah/GDCP/blob/main/API.md).
 
 In the Investigator Center console, select option `1` to send a credential to the mobile agent.
 
