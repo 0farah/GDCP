@@ -31,12 +31,12 @@ By seamlessly integrating SSI principles into clinical studies, this project wil
 
 ## Application Setup 
 
-In order to get the application working on patient devices please click [here](https://github.com/0farah/GDCP.git/blob/main/application/README.md).
+In order to get the application working on patient devices please click [here](https://github.com/0farah/GDCP/blob/main/application/README.md).
 
 ## Runing The Agents
 
 We developed an agent for each individual entity that needs to be executed before utilizing the portals.
-To do so, please click [here](https://github.com/0farah/GDCP.git/blob/main/agents/README.md).
+To do so, please click [here](https://github.com/0farah/GDCP/blob/main/agents/README.md).
 
 ## Runing Portals
 

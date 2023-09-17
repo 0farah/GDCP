@@ -1,6 +1,6 @@
 # Run The Demo! <!-- omit in toc -->
 
-In this demo, we'll  use our familiar CenterInv ACA-Py agent to issue authentication credentials to patients, granting them access to the portal. This time the patient will use the [application](https://github.com/0farah/GDCP.git/blob/main/application/README.md) (mobile wallet) to accept the cresential and to provide their consent in medical researchs and then the Medical Center can check the consent with the Investigator Center to provide data access. To do this we need to run the centerInv agent on a publicly accessible port, and Alice will need a compatible mobile wallet.
+In this demo, we'll  use our familiar CenterInv ACA-Py agent to issue authentication credentials to patients, granting them access to the portal. This time the patient will use the [application](https://github.com/0farah/GDCP/blob/main/application/README.md) (mobile wallet) to accept the cresential and to provide their consent in medical researchs and then the Medical Center can check the consent with the Investigator Center to provide data access. To do this we need to run the centerInv agent on a publicly accessible port, and Alice will need a compatible mobile wallet.
 
 # Contents <!-- omit in toc -->
 
