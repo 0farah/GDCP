@@ -1,0 +1,10 @@
+node_modules/
+*.log
+# ignore all files in public/images/ but leave the directory itself empty
+public/images/*
+
+# ignore .env file
+.env
+
+# dependencies
+/node_modules
